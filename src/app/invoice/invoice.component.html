@@ -1,0 +1,213 @@
+<div class="container">
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <h1 class="header-title">Invoice Generator</h1>
+            <div class="header-buttons">
+                <button (click)="cancelInvoice()" class="btn btn-cancel">
+                    Cancel
+                </button>
+                <button (click)="saveInvoice()" class="btn btn-save">
+                    Save
+                </button>
+                <button (click)="saveAndPrint()" class="btn btn-print">
+                    Save & Print
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-content">
+        <div class="content-grid">
+            <!-- Form Section -->
+            <div class="form-section">
+                <h2 class="form-title">Invoice Details</h2>
+
+                <div class="form-fields">
+                    <div class="form-field">
+                        <label class="form-label">Customer Name</label>
+                        <input type="text" [(ngModel)]="invoiceMeta.customerName" class="form-input"
+                            placeholder="Enter customer name">
+                    </div>
+
+                    <div class="form-field">
+                        <label class="form-label">Customer Number</label>
+                        <input type="text" [(ngModel)]="invoiceMeta.customerNumber" class="form-input"
+                            placeholder="Enter phone number">
+                    </div>
+
+                    <div class="form-field">
+                        <label class="form-label">Invoice Number</label>
+                        <input type="text" [(ngModel)]="invoiceMeta.invoiceNumber" class="form-input"
+                            placeholder="Invoice number">
+                    </div>
+
+                    <div class="form-field">
+                        <label class="form-label">Reference</label>
+                        <input type="text" [(ngModel)]="invoiceMeta.reference" class="form-input"
+                            placeholder="Reference number">
+                    </div>
+
+                    <div class="form-field">
+                        <label class="form-label">Date</label>
+                        <input type="date" [(ngModel)]="invoiceMeta.date" class="form-input">
+                    </div>
+
+                    <div class="form-field">
+                        <label class="form-label">Salesperson</label>
+                        <input type="text" [(ngModel)]="invoiceMeta.salesperson" class="form-input"
+                            placeholder="Salesperson name">
+                    </div>
+
+                    <div class="form-field">
+                        <label class="form-label">Payment Method</label>
+                        <select [(ngModel)]="invoiceMeta.paymentMethod" class="form-select">
+                            <option value="UPI">UPI</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Card">Card</option>
+                            <option value="Net Banking">Net Banking</option>
+                        </select>
+                    </div>
+
+                    <div class="form-field">
+                        <label class="form-label">Discount (%)</label>
+                        <input type="number" [(ngModel)]="invoiceMeta.discount" (input)="calculateTotals()"
+                            class="form-input" placeholder="0" min="0" max="100">
+                    </div>
+
+                    <div class="form-field">
+                        <label class="form-label">Adjustment (₹)</label>
+                        <input type="number" [(ngModel)]="invoiceMeta.adjustment" (input)="calculateTotals()"
+                            class="form-input" placeholder="0">
+                    </div>
+
+                    <div class="form-field">
+                        <div class="checkbox-field">
+                            <input type="checkbox" [(ngModel)]="invoiceMeta.fullyPaid" class="checkbox-input"
+                                id="fullyPaid">
+                            <label for="fullyPaid" class="checkbox-label">Fully Paid</label>
+                        </div>
+                    </div>
+
+                    <div class="form-field">
+                        <label class="form-label">Customer Notes</label>
+                        <textarea [(ngModel)]="invoiceMeta.customerNotes" rows="4" class="form-textarea"
+                            placeholder="Add any notes for the customer...">
+            </textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Invoice Preview Section -->
+            <div class="invoice-preview" id="invoice-content">
+                <!-- Invoice Header -->
+                <div class="invoice-header">
+                    <div class="invoice-header-content">
+                        <div class="company-info">
+                            <div class="company-logo">
+                                <span>LOGO</span>
+                            </div>
+                            <h2 class="company-name">Your Company Name</h2>
+                            <p class="company-details">123 Business Street, City, State 12345</p>
+                            <p class="company-details">Phone: +91 9876543210 | Email: info&#64;company.com</p>
+                        </div>
+                        <div class="invoice-info">
+                            <h1 class="invoice-title">INVOICE</h1>
+                            <p class="invoice-details">Invoice #: {{invoiceMeta.invoiceNumber}}</p>
+                            <p class="invoice-details">Date: {{formatDate(invoiceMeta.date)}}</p>
+                            <p class="invoice-details">Reference: {{invoiceMeta.reference}}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customer & Sales Info -->
+                <div class="customer-section">
+                    <div class="customer-grid">
+                        <div class="customer-info">
+                            <h3>Bill To:</h3>
+                            <p class="customer-name">{{invoiceMeta.customerName}}</p>
+                            <p>Phone: {{invoiceMeta.customerNumber}}</p>
+                        </div>
+                        <div class="sales-info">
+                            <h3>Sales Representative:</h3>
+                            <p class="sales-name">{{invoiceMeta.salesperson}}</p>
+                            <p>Payment Method: {{invoiceMeta.paymentMethod}}</p>
+                            <p>Status: <span
+                                    [style.color]="invoiceMeta.fullyPaid ? '#16a34a' : '#dc2626'">{{invoiceMeta.fullyPaid
+                                    ? 'Paid' : 'Pending'}}</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Items Table -->
+                <div class="items-section">
+                    <div class="items-table-container">
+                        <table class="items-table">
+                            <thead>
+                                <tr>
+                                    <th class="text-left">Product</th>
+                                    <th class="text-center">Qty</th>
+                                    <th class="text-right">Rate</th>
+                                    <th class="text-right">MRP</th>
+                                    <th class="text-right">GST</th>
+                                    <th class="text-right">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let item of invoiceItems">
+                                    <td>
+                                        <div class="product-name">{{item.product}}</div>
+                                    </td>
+                                    <td class="text-center">{{item.quantity}}</td>
+                                    <td class="text-right">₹{{item.rate.toLocaleString('en-IN')}}</td>
+                                    <td class="text-right">₹{{item.mrp.toLocaleString('en-IN')}}</td>
+                                    <td class="text-right">{{item.gst}}%</td>
+                                    <td class="text-right">₹{{item.total.toLocaleString('en-IN')}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Summary -->
+                    <div class="summary-section">
+                        <div class="summary-card">
+                            <div class="summary-row">
+                                <span class="summary-label">Subtotal:</span>
+                                <span class="summary-value">₹{{calculations.subtotal.toLocaleString('en-IN')}}</span>
+                            </div>
+                            <div class="summary-row">
+                                <span class="summary-label">Total Tax:</span>
+                                <span class="summary-value">₹{{calculations.totalTax.toLocaleString('en-IN')}}</span>
+                            </div>
+                            <div class="summary-row">
+                                <span class="summary-label">Discount ({{invoiceMeta.discount}}%):</span>
+                                <span
+                                    class="summary-value summary-discount">-₹{{calculations.discountAmount.toLocaleString('en-IN')}}</span>
+                            </div>
+                            <div class="summary-row">
+                                <span class="summary-label">Adjustment:</span>
+                                <span class="summary-value">₹{{invoiceMeta.adjustment.toLocaleString('en-IN')}}</span>
+                            </div>
+                            <div class="summary-row summary-total">
+                                <span class="summary-label">Grand Total:</span>
+                                <span class="summary-value">₹{{calculations.grandTotal.toLocaleString('en-IN')}}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Customer Notes -->
+                    <div class="notes-section">
+                        <h4 class="notes-title">Customer Notes:</h4>
+                        <p class="notes-content">{{invoiceMeta.customerNotes}}</p>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="invoice-footer">
+                        <p class="footer-text">Thank you for your business!</p>
+                        <p class="footer-text">This is a computer-generated invoice.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
